@@ -1,0 +1,64 @@
+# Postfix Main Configuration for SecureVault
+
+# Basic settings
+smtpd_banner = $myhostname ESMTP SecureVault Mail
+biff = no
+append_dot_mydstrean_add_missing_headers = no
+readme_directory = no
+
+# TLS parameters
+smtpd_tls_cert_file = /etc/postfix/ssl/fullchain.pem
+smtpd_tls_key_file = /etc/postfix/ssl/privkey.pem
+smtpd_tls_security_level = may
+smtpd_tls_loglevel = 1
+smtpd_tls_received_header = yes
+
+smtp_tls_security_level = may
+smtp_tls_loglevel = 1
+
+# Virtual mailbox settings
+virtual_mailbox_domains = $MAIL_DOMAIN
+virtual_mailbox_base = /var/mail/vhosts
+virtual_mailbox_maps = pgsql:/etc/postfix/pgsql-virtual-mailbox-maps.cf
+virtual_transport = lmtp:unix:private/dovecot-lmtp
+
+# Alias handling - forward to real email
+virtual_alias_maps = pgsql:/etc/postfix/pgsql-virtual-alias-maps.cf
+
+# Network settings
+inet_interfaces = all
+inet_protocols = ipv4
+
+# Restrictions
+smtpd_helo_required = yes
+smtpd_helo_restrictions = 
+    permit_mynetworks,
+    reject_invalid_helo_hostname,
+    reject_non_fqdn_helo_hostname
+
+smtpd_sender_restrictions = 
+    permit_mynetworks,
+    reject_non_fqdn_sender,
+    reject_unknown_sender_domain
+
+smtpd_recipient_restrictions = 
+    permit_mynetworks,
+    reject_unauth_destination,
+    reject_non_fqdn_recipient,
+    reject_unknown_recipient_domain
+
+# Rate limiting
+smtpd_client_connection_rate_limit = 10
+smtpd_client_message_rate_limit = 20
+anvil_rate_time_unit = 60s
+
+# Size limits
+message_size_limit = 10485760
+mailbox_size_limit = 0
+
+# Queue settings
+maximal_queue_lifetime = 1d
+bounce_queue_lifetime = 1d
+
+# Logging
+maillog_file = /dev/stdout

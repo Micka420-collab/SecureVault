@@ -1,0 +1,53 @@
+{
+    "name": "SecureVault - Gestionnaire de mots de passe",
+    "short_name": "SecureVault",
+    "description": "Coffre-fort de mots de passe sécurisé avec chiffrement de bout en bout",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#1e1e2e",
+    "theme_color": "#cba6f7",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/logo-securevault.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": ["security", "productivity", "utilities"],
+    "screenshots": [
+        {
+            "src": "/screenshot-1.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "form_factor": "wide"
+        },
+        {
+            "src": "/screenshot-2.png",
+            "sizes": "750x1334",
+            "type": "image/png",
+            "form_factor": "narrow"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Coffre-fort",
+            "short_name": "Vault",
+            "description": "Accéder rapidement au coffre-fort",
+            "url": "/vault",
+            "icons": [{ "src": "/icon-vault.png", "sizes": "96x96" }]
+        },
+        {
+            "name": "Nouvelle entrée",
+            "short_name": "Ajouter",
+            "description": "Ajouter une nouvelle entrée",
+            "url": "/vault?action=create",
+            "icons": [{ "src": "/icon-add.png", "sizes": "96x96" }]
+        }
+    ],
+    "related_applications": [],
+    "prefer_related_applications": false,
+    "lang": "fr",
+    "dir": "ltr"
+}

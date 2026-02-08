@@ -1,0 +1,32 @@
+{
+  "name": "securevault-extension",
+  "version": "1.0.0",
+  "description": "SecureVault Browser Extension - Auto-fill for your self-hosted password manager",
+  "type": "module",
+  "scripts": {
+    "build": "node build.js",
+    "build:icons": "node scripts/generate-icons.js",
+    "build:extension": "node scripts/build-extension.js",
+    "build:all": "npm run build:icons && npm run build:extension",
+    "lint": "eslint src/",
+    "dev": "node build.js && echo 'Load browser-extension folder in chrome://extensions'",
+    "package": "npm run build && npm run build:icons && node scripts/package.js",
+    "test": "echo 'Tests not implemented yet'"
+  },
+  "keywords": [
+    "password-manager",
+    "security",
+    "encryption",
+    "tailscale",
+    "self-hosted"
+  ],
+  "author": "SecureVault",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "sharp": "^0.33.0"
+  },
+  "optionalDependencies": {
+    "sharp": "^0.33.0"
+  }
+}

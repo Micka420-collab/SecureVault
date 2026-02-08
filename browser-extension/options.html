@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>SecureVault Settings</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1e1e2e;
+            color: #cdd6f4;
+            min-height: 100vh;
+            display: flex;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: #181825;
+            padding: 24px;
+            border-right: 1px solid #313244;
+        }
+        
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        
+        .sidebar-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .sidebar-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .sidebar-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .nav-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item:hover {
+            background: #313244;
+        }
+        
+        .nav-item.active {
+            background: #313244;
+            color: #cba6f7;
+        }
+        
+        .main {
+            flex: 1;
+            padding: 32px;
+            max-width: 800px;
+        }
+        
+        h2 {
+            font-size: 24px;
+            margin-bottom: 24px;
+            color: #cdd6f4;
+        }
+        
+        h3 {
+            font-size: 16px;
+            margin: 24px 0 12px;
+            color: #a6adc8;
+        }
+        
+        .section {
+            background: #181825;
+            border: 1px solid #313244;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #cdd6f4;
+        }
+        
+        .form-group input[type="text"],
+        .form-group input[type="url"] {
+            width: 100%;
+            padding: 10px 12px;
+            background: #1e1e2e;
+            border: 1px solid #313244;
+            border-radius: 6px;
+            color: #cdd6f4;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #cba6f7;
+        }
+        
+        .form-group input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .form-group small {
+            display: block;
+            margin-top: 4px;
+            font-size: 12px;
+            color: #6c7086;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #cba6f7, #89b4fa);
+            color: #1e1e2e;
+        }
+        
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+        
+        .btn-secondary {
+            background: #313244;
+            color: #cdd6f4;
+            margin-left: 8px;
+        }
+        
+        .btn-secondary:hover {
+            background: #45475a;
+        }
+        
+        .btn-danger {
+            background: #f38ba8;
+            color: #1e1e2e;
+        }
+        
+        .btn-danger:hover {
+            background: #eba0ac;
+        }
+        
+        .status-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: #1e1e2e;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .status-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .status-icon.success {
+            background: rgba(166, 227, 161, 0.1);
+        }
+        
+        .status-icon.error {
+            background: rgba(243, 139, 168, 0.1);
+        }
+        
+        .status-icon.pending {
+            background: rgba(249, 226, 175, 0.1);
+        }
+        
+        .status-info h4 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        
+        .status-info p {
+            font-size: 14px;
+            color: #6c7086;
+        }
+        
+        .switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #313244;
+        }
+        
+        .switch:last-child {
+            border-bottom: none;
+        }
+        
+        .switch-label {
+            font-size: 14px;
+        }
+        
+        .switch-label small {
+            display: block;
+            color: #6c7086;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+        
+        .switch-toggle {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #313244;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .switch-toggle.active {
+            background: #cba6f7;
+        }
+        
+        .switch-toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: #cdd6f4;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+        
+        .switch-toggle.active::after {
+            transform: translateX(20px);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .info-box {
+            background: rgba(137, 180, 250, 0.1);
+            border: 1px solid #89b4fa;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .info-box p {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .info-box code {
+            background: #1e1e2e;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-icon"><img src="icons/logo-securevault.png" alt="SecureVault"></div>
+            <div class="sidebar-title">SecureVault</div>
+        </div>
+        <nav>
+            <div class="nav-item active" data-page="connection">🔗 Connection</div>
+            <div class="nav-item" data-page="preferences">⚙️ Preferences</div>
+            <div class="nav-item" data-page="security">🛡️ Security</div>
+            <div class="nav-item" data-page="about">ℹ️ About</div>
+        </nav>
+    </div>
+    
+    <div class="main">
+        <!-- Page: Connection -->
+        <div id="page-connection" class="page">
+            <h2>Server Connection</h2>
+            
+            <div class="section">
+                <div id="connection-status" class="status-card">
+                    <div class="status-icon pending">⏳</div>
+                    <div class="status-info">
+                        <h4>Checking connection...</h4>
+                        <p>Verifying your SecureVault server</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>Server Configuration</h3>
+                
+                <div class="info-box">
+                    <p>
+                        🔒 <strong>Tailscale Recommended</strong><br>
+                        For optimal security, run your SecureVault server on your Tailscale network.
+                        Enter the Tailscale IP (100.64.x.x) or Tailscale MagicDNS name.
+                    </p>
+                </div>
+                
+                <div class="form-group">
+                    <label>SecureVault Server URL</label>
+                    <input type="url" id="server-url" placeholder="https://vault.ts.net:3001">
+                    <small>Example: https://myvault.my-tailnet.ts.net or http://100.64.0.1:3001</small>
+                </div>
+                
+                <button id="btn-save-server" class="btn btn-primary">Save & Test Connection</button>
+                <button id="btn-clear" class="btn btn-secondary">Clear Data</button>
+            </div>
+            
+            <div class="section">
+                <h3>Authentication</h3>
+                <div class="form-group">
+                    <label>Extension Token</label>
+                    <input type="text" id="extension-token" disabled>
+                    <small>Generated automatically when you log in from the popup</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Page: Preferences -->
+        <div id="page-preferences" class="page hidden">
+            <h2>Preferences</h2>
+            
+            <div class="section">
+                <h3>Auto-fill Settings</h3>
+                
+                <div class="switch">
+                    <div class="switch-label">
+                        Auto-fill on page load
+                        <small>Automatically fill login forms when you visit a website</small>
+                    </div>
+                    <div class="switch-toggle active" id="toggle-autofill"></div>
+                </div>
+                
+                <div class="switch">
+                    <div class="switch-label">
+                        Show save prompt
+                        <small>Ask to save new passwords when you log in</small>
+                    </div>
+                    <div class="switch-toggle active" id="toggle-save"></div>
+                </div>
+                
+                <div class="switch">
+                    <div class="switch-label">
+                        Show in context menu
+                        <small>Add SecureVault options to right-click menu</small>
+                    </div>
+                    <div class="switch-toggle" id="toggle-context"></div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>Notifications</h3>
+                
+                <div class="switch">
+                    <div class="switch-label">
+                        Show fill notifications
+                        <small>Display notification when credentials are filled</small>
+                    </div>
+                    <div class="switch-toggle" id="toggle-notify"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Page: Security -->
+        <div id="page-security" class="page hidden">
+            <h2>Security</h2>
+            
+            <div class="section">
+                <h3>Session</h3>
+                <p style="margin-bottom: 16px; color: #6c7086;">
+                    Your session will automatically lock after the specified timeout.
+                    You'll need to re-enter your master password.
+                </p>
+                
+                <div class="form-group">
+                    <label>Auto-lock timeout</label>
+                    <input type="text" value="5 minutes" disabled>
+                </div>
+                
+                <button id="btn-lock-now" class="btn btn-danger">Lock Now</button>
+            </div>
+            
+            <div class="section">
+                <h3>Data Security</h3>
+                <p style="margin-bottom: 16px; color: #6c7086;">
+                    All your credentials are encrypted locally before being sent to the server.
+                    The encryption key is derived from your master password and never leaves your device.
+                </p>
+                
+                <div class="form-group">
+                    <label>Clear Extension Data</label>
+                    <small>This will remove all saved tokens and settings</small>
+                </div>
+                <button id="btn-clear-all" class="btn btn-danger">Clear All Data</button>
+            </div>
+        </div>
+        
+        <!-- Page: About -->
+        <div id="page-about" class="page hidden">
+            <h2>About SecureVault</h2>
+            
+            <div class="section">
+                <div style="text-align: center; padding: 40px;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🔐</div>
+                    <h3>SecureVault Browser Extension</h3>
+                    <p style="color: #6c7086; margin-top: 8px;">Version 1.0.0</p>
+                </div>
+                
+                <div style="padding: 0 20px;">
+                    <p style="margin-bottom: 16px; line-height: 1.6;">
+                        SecureVault is a self-hosted password manager designed for maximum privacy.
+                        Your data is encrypted locally and stored on your own server.
+                    </p>
+                    
+                    <h3 style="margin-top: 24px;">Features</h3>
+                    <ul style="margin-left: 20px; line-height: 1.8; color: #a6adc8;">
+                        <li>Zero-knowledge encryption</li>
+                        <li>Tailscale network integration</li>
+                        <li>Auto-fill login forms</li>
+                        <li>Password generation</li>
+                        <li>Secure sharing</li>
+                        <li>Emergency access</li>
+                    </ul>
+                    
+                    <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid #313244; text-align: center; color: #6c7086; font-size: 12px;">
+                        <p>Made with ❤️ for privacy-conscious users</p>
+                        <p style="margin-top: 8px;">Licensed under MIT</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="src/options.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+# PostgreSQL lookup for virtual mailbox/alias mapping
+# This file is used by Postfix to lookup alias -> real email mappings
+
+user = vault
+password = vault_secure_password
+hosts = postgres
+dbname = securevault
+
+# Query to find active aliases and their forward address
+query = SELECT forward_to FROM aliases WHERE alias_address='%s' AND is_active=true

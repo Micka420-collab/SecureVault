@@ -1,0 +1,76 @@
+{
+  "manifest_version": 3,
+  "name": "SecureVault Auto-Fill",
+  "version": "1.0.0",
+  "description": "Secure auto-fill for your self-hosted SecureVault password manager",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting",
+    "notifications",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "externally_connectable": {
+    "matches": [
+      "http://localhost:*/*",
+      "http://100.64.*/*",
+      "https://100.64.*/*",
+      "https://*.ts.net/*"
+    ]
+  },
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content.js"],
+      "css": ["src/content.css"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "SecureVault Auto-Fill",
+    "default_icon": {
+      "16": "icons/logo-securevault.png",
+      "32": "icons/logo-securevault.png",
+      "48": "icons/logo-securevault.png",
+      "128": "icons/logo-securevault.png"
+    }
+  },
+  "icons": {
+    "16": "icons/logo-securevault.png",
+    "32": "icons/logo-securevault.png",
+    "48": "icons/logo-securevault.png",
+    "128": "icons/logo-securevault.png"
+  },
+  "commands": {
+    "open-popup": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L",
+        "mac": "Command+Shift+L"
+      },
+      "description": "Open SecureVault popup"
+    },
+    "fill-credentials": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+F",
+        "mac": "Command+Shift+F"
+      },
+      "description": "Fill credentials on current page"
+    }
+  },
+  "options_page": "options.html",
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

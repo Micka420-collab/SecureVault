@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Database
+*.db
+*.db-journal
+prisma/migrations/
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Uploads directory (user files)
+uploads/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

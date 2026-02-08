@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="description" content="SecureVault - Gestionnaire de mots de passe sécurisé avec chiffrement de bout en bout" />
+    <meta name="theme-color" content="#cba6f7" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="SecureVault" />
+    <link rel="apple-touch-icon" href="/logo-securevault.png" />
+    <link rel="icon" type="image/png" href="/logo-securevault.png" />
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="SecureVault - Gestionnaire de mots de passe sécurisé" />
+    <meta property="og:description" content="Coffre-fort de mots de passe auto-hébergé avec chiffrement de bout en bout" />
+    <meta property="og:image" content="/logo-securevault.png" />
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:image" content="/logo-securevault.png" />
+    
+    <!-- Security headers (also set in nginx config for production) -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://api.pwnedpasswords.com; font-src 'self';" />
+    
+    <title>SecureVault - Coffre-Fort Sécurisé</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('[SW] Registered:', registration.scope);
+            })
+            .catch((error) => {
+              console.log('[SW] Registration failed:', error);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>

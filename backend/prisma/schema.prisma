@@ -1,0 +1,324 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ========================================
+// Vault Versioning Model (history)
+// ========================================
+model VaultVersion {
+  id          String   @id @default(uuid())
+  entryId     String
+  userId      String
+  action      String   // 'create', 'update', 'delete', 'restore'
+  oldData     String?  // JSON string of previous state
+  createdAt   DateTime @default(now())
+  
+  @@index([entryId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("vault_versions")
+}
+
+// ========================================
+// Secure Share Model (auto-destruct)
+// ========================================
+model SecureShare {
+  id          String   @id @default(uuid())
+  userId      String
+  encryptedData String // Encrypted secret
+  iv          String   // IV for encryption
+  salt        String   // Salt for key derivation
+  maxViews    Int      @default(1)
+  currentViews Int     @default(0)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("secure_shares")
+}
+
+// ========================================
+// Emergency Access Model
+// ========================================
+model EmergencyAccess {
+  id                     String   @id @default(uuid())
+  grantorId              String   // User who grants access
+  granteeId              String   // Trusted person
+  granteeEmail           String   // Email for notification
+  status                 String   @default("pending") // pending, requested, confirmed, rejected
+  waitTimeHours          Int      @default(24) // 12, 24, 48, 72
+  requestDate            DateTime?
+  accessDate             DateTime?
+  encryptedKey           String?  // Key encrypted for grantee
+  
+  // Expiration après confirmation (amélioration sécurité)
+  confirmedExpiryHours   Int      @default(168) // 7 jours par défaut
+  confirmedAt            DateTime?
+  
+  createdAt              DateTime @default(now())
+  
+  // Relations
+  grantor                User     @relation("EmergencyAccessGranted", fields: [grantorId], references: [id], onDelete: Cascade)
+  grantee                User     @relation("EmergencyAccessReceived", fields: [granteeId], references: [id], onDelete: Cascade)
+  audits                 EmergencyAccessAudit[]
+  
+  @@unique([grantorId, granteeEmail])
+  @@index([grantorId])
+  @@index([granteeId])
+  @@map("emergency_access")
+}
+
+// ========================================
+// Emergency Access Audit Model (detailed logging)
+// ========================================
+model EmergencyAccessAudit {
+  id                String   @id @default(uuid())
+  emergencyAccessId String
+  action            String   // REQUESTED, APPROVED, REJECTED, ACCESSED_VAULT, VIEWED_ENTRY, EXPIRED
+  entryId           String?  // Si action sur une entrée spécifique
+  ipAddress         String
+  userAgent         String
+  details           String?  // JSON avec infos additionnelles
+  timestamp         DateTime @default(now())
+  
+  // Relation
+  emergencyAccess   EmergencyAccess @relation(fields: [emergencyAccessId], references: [id], onDelete: Cascade)
+  
+  @@index([emergencyAccessId])
+  @@index([action])
+  @@index([timestamp])
+  @@index([ipAddress])
+  @@map("emergency_access_audits")
+}
+
+// ========================================
+// Audit Log Model (for security monitoring)
+// ========================================
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  action      String   // Action type from AUDIT_ACTIONS
+  details     String?  // Additional context (sanitized) stored as JSON string
+  ipAddress   String
+  userAgent   String
+  timestamp   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([action])
+  @@index([timestamp])
+  @@index([ipAddress])
+  @@map("audit_logs")
+}
+
+// ========================================
+// User Model
+// ========================================
+model User {
+  id                String   @id @default(uuid())
+  email             String   @unique
+  passwordHash      String   // Argon2 hash of master password
+  clientAuthHash    String?  // SHA-256 hash for client-side unlock verification (encrypted)
+  salt              String   // Salt for client-side key derivation
+  totpSecret        String?  // Encrypted TOTP secret
+  totpEnabled       Boolean  @default(false)
+  realEmail         String   // Encrypted real email for alias forwarding
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Onboarding
+  hasSeenOnboarding Boolean @default(false)
+
+  // Relations
+  vaultEntries VaultEntry[]
+  aliases      Alias[]
+  sessions     Session[]
+  documents    SecureDocument[]
+  emergencyAccessGranted  EmergencyAccess[] @relation("EmergencyAccessGranted")
+  emergencyAccessReceived EmergencyAccess[] @relation("EmergencyAccessReceived")
+
+  @@map("users")
+}
+
+// ========================================
+// Session Model (for auto-lock mechanism)
+// ========================================
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  token        String   @unique
+  lastActivity DateTime @default(now())
+  expiresAt    DateTime
+  totpVerified Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@map("sessions")
+}
+
+// ========================================
+// Vault Entry Model
+// ========================================
+model VaultEntry {
+  id            String   @id @default(uuid())
+  userId        String
+  encryptedData String   // AES-256-GCM encrypted blob (title, username, password, notes, url)
+  iv            String   // Initialization vector for AES
+  category      String?  // Optional category (login, note, card, identity)
+  favorite      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  alias Alias?
+
+  @@index([userId])
+  @@map("vault_entries")
+}
+
+// ========================================
+// Email Alias Model
+// ========================================
+model Alias {
+  id           String   @id @default(uuid())
+  userId       String
+  aliasAddress String   @unique // e.g., abc123xyz@domain.com
+  label        String   // User-friendly name
+  description  String?  // Optional description
+  isActive     Boolean  @default(true)
+  forwardTo    String   // Encrypted real email
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Optional link to vault entry
+  vaultEntryId String? @unique
+
+  // Relations
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vaultEntry VaultEntry? @relation(fields: [vaultEntryId], references: [id], onDelete: SetNull)
+  emails     Email[]
+
+  @@index([userId])
+  @@index([aliasAddress])
+  @@map("aliases")
+}
+
+// ========================================
+// Email Model (received emails)
+// ========================================
+model Email {
+  id            String   @id @default(uuid())
+  aliasId       String
+  fromAddress   String
+  toAddress     String
+  subject       String
+  bodyEncrypted String   // Encrypted email body
+  bodyIv        String   // IV for body encryption
+  headers       String?  // Encrypted headers JSON
+  receivedAt    DateTime @default(now())
+  isRead        Boolean  @default(false)
+  isStarred     Boolean  @default(false)
+
+  // Relations
+  alias Alias @relation(fields: [aliasId], references: [id], onDelete: Cascade)
+
+  @@index([aliasId])
+  @@index([receivedAt])
+  @@map("emails")
+}
+
+// ========================================
+// Secure Document Model (encrypted files/videos)
+// ========================================
+model SecureDocument {
+  id            String   @id @default(uuid())
+  userId        String
+  
+  // Encrypted metadata (stored encrypted with user's key)
+  encryptedName String   // Original filename encrypted
+  nameIv        String   // IV for filename encryption
+  
+  // File info (non-sensitive, for display purposes)
+  mimeType      String   // e.g., "video/mp4", "application/pdf"
+  sizeBytes     Int      // File size in bytes
+  
+  // Encryption metadata
+  fileIv        String   // IV for file content encryption
+  fileAuthTag   String   // Auth tag for AES-GCM
+  
+  // Storage
+  storagePath   String   // Relative path on filesystem (encrypted chunks)
+  
+  // Categorization
+  category      String   @default("other") // video, document, image, audio, other
+  tags          String?  // JSON array of encrypted tags
+  
+  // Thumbnail for videos/images (encrypted)
+  thumbnailPath String?  // Path to encrypted thumbnail
+  thumbnailIv   String?  // IV for thumbnail
+  
+  // Versioning
+  version       Int      @default(1)
+  previousId    String?  // Link to previous version
+  
+  // Access control
+  favorite      Boolean  @default(false)
+  
+  // OCR Search (added by nextendo)
+  ocrText       String?  // Extracted text for search
+  ocrConfidence Float?   // OCR confidence score (0-100)
+  ocrPages      Int?     // Number of pages processed
+  ocrIndexedAt  DateTime? // When OCR was performed
+  
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([category])
+  @@index([createdAt])
+  @@index([favorite])
+  @@map("secure_documents")
+}
+
+// ========================================
+// Shamir Secret Sharing Model - by nextendo
+// ========================================
+model ShamirShare {
+  id            String   @id @default(uuid())
+  userId        String
+  
+  // Configuration (NOT the actual shares!)
+  totalShares   Int      // N (total parts created)
+  threshold     Int      // M (minimum to reconstruct)
+  description   String?  // Description du secret
+  
+  // Note: Les parts ne sont JAMAIS stockées sur le serveur!
+  // L'utilisateur doit les conserver lui-même.
+  
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@map("shamir_shares")
+}

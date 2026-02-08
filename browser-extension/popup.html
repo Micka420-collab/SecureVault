@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            width: 350px;
+            min-height: 400px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1e1e2e;
+            color: #cdd6f4;
+            padding: 16px;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #313244;
+        }
+        
+        .header-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .header-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #cba6f7, #89b4fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            background: #313244;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .status-dot.connected {
+            background: #a6e3a1;
+            box-shadow: 0 0 8px #a6e3a1;
+        }
+        
+        .status-dot.disconnected {
+            background: #f38ba8;
+        }
+        
+        .status-text {
+            font-size: 14px;
+            color: #cdd6f4;
+        }
+        
+        .credentials-list {
+            margin-top: 16px;
+        }
+        
+        .credential-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #313244;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .credential-item:hover {
+            background: #45475a;
+        }
+        
+        .credential-icon {
+            width: 36px;
+            height: 36px;
+            background: #45475a;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        .credential-info {
+            flex: 1;
+        }
+        
+        .credential-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #cdd6f4;
+        }
+        
+        .credential-username {
+            font-size: 12px;
+            color: #6c7086;
+            margin-top: 2px;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 12px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #cba6f7, #89b4fa);
+            color: #1e1e2e;
+        }
+        
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+        
+        .btn-secondary {
+            background: #313244;
+            color: #cdd6f4;
+        }
+        
+        .btn-secondary:hover {
+            background: #45475a;
+        }
+        
+        .message {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c7086;
+        }
+        
+        .message-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+        
+        .settings-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            margin-top: 16px;
+            color: #89b4fa;
+            text-decoration: none;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .settings-link:hover {
+            color: #cba6f7;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        #login-form {
+            margin-top: 20px;
+        }
+        
+        .input-group {
+            margin-bottom: 12px;
+        }
+        
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            color: #6c7086;
+            margin-bottom: 4px;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 10px 12px;
+            background: #313244;
+            border: 1px solid #45475a;
+            border-radius: 6px;
+            color: #cdd6f4;
+            font-size: 14px;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #cba6f7;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-icon"><img src="icons/logo-securevault.png" alt="SecureVault"></div>
+        <h1>SecureVault</h1>
+    </div>
+
+    <div id="status-container" class="status">
+        <div id="status-dot" class="status-dot disconnected"></div>
+        <span id="status-text" class="status-text">Not connected</span>
+    </div>
+
+    <!-- Vue: Non configuré -->
+    <div id="view-setup" class="hidden">
+        <div class="message">
+            <div class="message-icon">⚙️</div>
+            <p>Please configure your SecureVault server</p>
+        </div>
+        <button id="btn-setup" class="btn btn-primary">Configure</button>
+    </div>
+
+    <!-- Vue: Non connecté -->
+    <div id="view-login" class="hidden">
+        <div id="login-form">
+            <div class="input-group">
+                <label>Server URL</label>
+                <input type="url" id="server-url" placeholder="https://vault.local:3001">
+            </div>
+            <div class="input-group">
+                <label>Email</label>
+                <input type="email" id="email" placeholder="your@email.com">
+            </div>
+            <div class="input-group">
+                <label>Master Password</label>
+                <input type="password" id="password" placeholder="••••••••">
+            </div>
+            <button id="btn-login" class="btn btn-primary">Connect</button>
+        </div>
+    </div>
+
+    <!-- Vue: Connecté -->
+    <div id="view-connected" class="hidden">
+        <div class="credentials-list" id="credentials-list">
+            <!-- Les credentials seront injectés ici -->
+        </div>
+        
+        <button id="btn-lock" class="btn btn-secondary">Lock Vault</button>
+        
+        <div class="settings-link" id="btn-options">
+            ⚙️ Settings
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
