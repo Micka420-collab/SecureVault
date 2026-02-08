@@ -218,12 +218,29 @@ export default function Vault() {
                             >
                                 <div className="entry-favicon">
                                     {data?.url ? (
-                                        <img
-                                            src={`https://www.google.com/s2/favicons?sz=32&domain=${new URL(data.url).hostname}`}
-                                            alt=""
-                                            onError={(e) => { e.target.style.display = 'none'; }}
-                                            style={{ width: 24, height: 24 }}
-                                        />
+                                        <div 
+                                            style={{ 
+                                                width: 24, 
+                                                height: 24, 
+                                                borderRadius: 4,
+                                                background: 'linear-gradient(135deg, #cba6f7, #89b4fa)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: 12,
+                                                fontWeight: 'bold',
+                                                color: '#1e1e2e'
+                                            }}
+                                        >
+                                            {(() => {
+                                                try {
+                                                    const hostname = new URL(data.url).hostname;
+                                                    return hostname.charAt(0).toUpperCase();
+                                                } catch {
+                                                    return <Key size={14} />;
+                                                }
+                                            })()}
+                                        </div>
                                     ) : (
                                         <Key size={20} />
                                     )}

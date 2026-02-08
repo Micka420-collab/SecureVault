@@ -25,8 +25,12 @@
         "express-validator": "^7.0.1",
         "helmet": "^7.1.0",
         "jsonwebtoken": "^9.0.2",
+        "multer": "^1.4.5-lts.1",
         "otplib": "^12.0.1",
+        "pdf-parse": "^1.1.1",
         "qrcode": "^1.5.3",
+        "sharp": "^0.33.1",
+        "tesseract.js": "^5.0.3",
         "uuid": "^9.0.1",
         "validator": "^13.11.0"
     },

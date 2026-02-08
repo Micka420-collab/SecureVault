@@ -17,6 +17,8 @@ import securityRoutes from './routes/security.js';
 import extensionRoutes from './routes/extension.js';
 import extensionDownloadRoutes from './routes/extensionDownload.js';
 import documentRoutes from './routes/documents.js';
+import searchRoutes from './routes/search.js';
+import shamirRoutes from './routes/shamir.js';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler.js';
@@ -175,6 +177,8 @@ app.use('/api/security', securityRoutes);
 app.use('/api/extension', extensionRoutes);
 app.use('/api/extension', extensionDownloadRoutes);
 app.use('/api/documents', documentRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/shamir', shamirRoutes);
 
 // ========================================
 // Error Handling

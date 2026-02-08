@@ -2,10 +2,10 @@ import { useState, useCallback } from 'react';
 
 /**
  * Hook pour vérifier si un mot de passe a été compromis
- * Utilise l'API Have I Been Pwned (k-Anonymity)
+ * VERSION 100% OFFLINE - Ne fait aucun appel externe
  * 
- * Le mot de passe n'est jamais envoyé en clair - seuls les 5 premiers caractères
- * du hash SHA-1 sont envoyés à l'API.
+ * Vérifie localement contre une liste de mots de passe communs
+ * et analyse la force du mot de passe sans jamais contacter internet.
  */
 export function usePasswordCheck() {
     const [isChecking, setIsChecking] = useState(false);
@@ -13,19 +13,31 @@ export function usePasswordCheck() {
     const [breachCount, setBreachCount] = useState(0);
     const [error, setError] = useState(null);
 
-    /**
-     * Hash le mot de passe en SHA-1
-     */
-    const sha1 = async (message) => {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(message);
-        const hashBuffer = await crypto.subtle.digest('SHA-1', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
-    };
+    // Liste locale des mots de passe les plus communs (top 100)
+    // Source: RockYou leak analysis - jamais envoyée nulle part
+    const commonPasswords = new Set([
+        '123456', 'password', '12345678', 'qwerty', '123456789',
+        'letmein', '1234567', 'football', 'iloveyou', 'admin',
+        'welcome', 'monkey', 'login', 'abc123', '111111',
+        '123123', 'password123', '1234', 'baseball', 'qwertyuiop',
+        'trustno1', 'sunshine', 'princess', 'dragon', 'adobe123',
+        'photoshop', '1234567890', 'master', 'hello123', 'freedom',
+        'whatever', 'qazwsx', '654321', 'jesus', 'password1',
+        'superman', '1q2w3e4r', 'zaq12wsx', 'password123', 'starwars',
+        'football', 'batman', 'passw0rd', 'hacker', 'killer',
+        'hockey', 'george', 'andrew', 'michelle', 'love',
+        'joshua', 'maggie', 'michael', 'biteme', 'mustang',
+        'access', 'loveme', 'pussy', '696969', 'qwerty123',
+        'asdfgh', 'chelsea', '123qwe', 'ranger', 'tigger',
+        'shadow', 'morgan', 'thomas', 'robert', 'daniel',
+        'jordan', 'ashley', 'hunter', 'harley', 'cowboys',
+        'dallas', 'matrix', 'liverpool', 'fuckyou', 'merlin',
+        'passwor', 'zaq1zaq1', '555555', 'fucking', 'alexander',
+        '666666', 'yankees', 'ninja', 'banana', 'testing'
+    ]);
 
     /**
-     * Vérifie si le mot de passe a été compromis
+     * Vérifie si le mot de passe a été compromis (OFFLINE uniquement)
      */
     const checkPassword = useCallback(async (password) => {
         if (!password || password.length < 1) {
@@ -38,42 +50,25 @@ export function usePasswordCheck() {
         setError(null);
 
         try {
-            // Calculer le hash SHA-1 du mot de passe
-            const hash = await sha1(password);
-            const prefix = hash.substring(0, 5);
-            const suffix = hash.substring(5);
+            // Vérification 100% offline
+            const lowerPassword = password.toLowerCase();
+            const found = commonPasswords.has(lowerPassword);
+            
+            // Vérifier aussi les variantes simples
+            const isCommonVariant = Array.from(commonPasswords).some(common => 
+                lowerPassword.includes(common) || 
+                lowerPassword === common + '123' ||
+                lowerPassword === common + '1' ||
+                lowerPassword.startsWith(common)
+            );
 
-            // Appeler l'API HIBP avec k-Anonymity
-            const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
-                headers: {
-                    'Add-Padding': 'true', // Améliore la confidentialité
-                },
-            });
+            const compromised = found || isCommonVariant;
+            const count = compromised ? 1000000 : 0; // Indique "très compromis" si trouvé
 
-            if (!response.ok) {
-                throw new Error('Failed to check password');
-            }
-
-            const data = await response.text();
-            const lines = data.split('\n');
-
-            // Chercher le suffixe dans la réponse
-            let found = false;
-            let count = 0;
-
-            for (const line of lines) {
-                const [lineSuffix, lineCount] = line.split(':');
-                if (lineSuffix.trim() === suffix) {
-                    found = true;
-                    count = parseInt(lineCount.trim(), 10);
-                    break;
-                }
-            }
-
-            setIsCompromised(found);
+            setIsCompromised(compromised);
             setBreachCount(count);
 
-            return { isCompromised: found, breachCount: count };
+            return { isCompromised: compromised, breachCount: count, offline: true };
 
         } catch (err) {
             console.error('Password check error:', err);
@@ -142,6 +137,10 @@ export function usePasswordStrength() {
             score += 10;
         }
 
+        if (password.length >= 20) {
+            score += 5;
+        }
+
         // Complexité
         const hasLower = /[a-z]/.test(password);
         const hasUpper = /[A-Z]/.test(password);
@@ -166,23 +165,23 @@ export function usePasswordStrength() {
         if (variety === 4) score += 10;
 
         // Pénalités
-        if (/(.){2,}/.test(password)) {
+        if (/(.)\1{2,}/.test(password)) {
             score -= 10;
             feedback.push('Évitez les répétitions');
         }
 
         if (/^[a-zA-Z]+$/.test(password)) {
             score -= 10;
-            feedback.push('N utilisez pas que des lettres');
+            feedback.push('N\'utilisez pas que des lettres');
         }
 
         if (/^[0-9]+$/.test(password)) {
             score -= 20;
-            feedback.push('N utilisez pas que des chiffres');
+            feedback.push('N\'utilisez pas que des chiffres');
         }
 
         // Mots communs (basique)
-        const commonWords = ['password', '123456', 'qwerty', 'admin', 'letmein'];
+        const commonWords = ['password', '123456', 'qwerty', 'admin', 'letmein', 'welcome', 'monkey'];
         if (commonWords.some(w => password.toLowerCase().includes(w))) {
             score -= 30;
             feedback.push('Mot de passe trop commun');
